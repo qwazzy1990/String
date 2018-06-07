@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include "..//..//utilities/include/utilities.h"
 
-#include "String.h"
+#include <String.h>
 
 
 bool DEBUG1 = false;
@@ -11,18 +13,25 @@ bool DEBUG2  = false;
 bool DEBUG3 = false;
 bool DEBUG4 = false;
 bool DEBUG5 = false;
-bool DEBUG6 = true;
+bool DEBUG6 = false;
+bool DEBUG7 = true;
+bool DEBUG8 = false;
 
-int main(int argc, char* argv[])
+int main(int argc, String argv[])
 {
+
+    if(DEBUG7){
+    	String a = NULL;
+	    destroystring(a);
+    }	
     if(DEBUG1){
       FILE* fp = fopen(argv[1], "r");
-      char* s = readfile(fp);
+      String s = readfile(fp);
       printf("%s", s);
 
-      char* delims = (char*)calloc(100, sizeof(char));
+      String delims = (String)calloc(100, sizeof(char));
       strcpy(delims, "\n");
-      char** tokens = stringsplit(s, delims);
+      Strings tokens = stringsplit(s, delims);
       if(tokens == NULL){
         printf("Why\n");
       }
@@ -40,8 +49,8 @@ int main(int argc, char* argv[])
     }
     //TEST COSNTRUCTORS
     if(DEBUG2){
-        char* s = createvoidstring();
-        char** s1 = createvoidstringarray();
+        String s = createvoidstring();
+        Strings s1 = createvoidstringarray();
         if(s1 != NULL && s != NULL)
           printf("Success\n");
         destroystring(s);
@@ -51,23 +60,23 @@ int main(int argc, char* argv[])
     if(DEBUG3){
         //char s[100];
         //destroystring(s);
-        char** sa = createvoidstringarray();
+        Strings sa = createvoidstringarray();
         destroystringarray(sa);
 
     }
     //TEST CLONERS
     if(DEBUG4){
-      //char* s = createvoidstring();
+      //String s = createvoidstring();
       //strcpy(s, "Eek a penis");
-      //char* clone = stringcopy(s);
+      //String clone = stringcopy(s);
       //printf("%s\n", clone);
       //destroystring(s);
       //destroystring(clone);
-      char* s = stringcopy("Three times four is 24");
-      char* delims = stringcopy(" ");
-      char** source = stringsplit(s, delims);
-      char** clone = stringarraycopy(source);
-      char** part = stringarraysegmentcopy(clone, 2, 9);
+      String s = stringcopy("Three times four is 24");
+      String delims = stringcopy(" ");
+      Strings source = stringsplit(s, delims);
+      Strings clone = stringarraycopy(source);
+      Strings part = stringarraysegmentcopy(clone, 2, 9);
       int j = 0;
       while(part[j]!=NULL){
         printf("%s\n", part[j]);
@@ -81,7 +90,7 @@ int main(int argc, char* argv[])
       destroystring(delims);
       destroystringarray(source);
       destroystringarray(clone);
-      char* segment = stringsegmentcopy(s, 7, 16);
+      String segment = stringsegmentcopy(s, 7, 16);
       if(badstring(segment))return 0;
       printf("Segment is %s\n", segment);
       destroystring(s);
@@ -92,8 +101,8 @@ int main(int argc, char* argv[])
     //test modifiers
     if(DEBUG5)
     {
-      char* dest = NULL;
-      char* source = stringcopy("hat");
+      String dest = NULL;
+      String source = stringcopy("hat");
       printf("Source is %s\n", source);
       dest = stringcat(dest, source);
       printf("Dest is %s\n", dest);
@@ -112,9 +121,9 @@ int main(int argc, char* argv[])
       printf("dest is %s\n", dest);
       destroystring(dest);
       destroystring(source);
-      format type = FLOAT;
+      Primitive type = FLOAT;
       double k = -122.375;
-      char* str = tostring(type, &k);
+      String str = tostring(type, &k);
       printf("%s\n", str);
       destroystring(str);
       //destroystring(source);
@@ -122,14 +131,46 @@ int main(int argc, char* argv[])
     }
     //test print function
     if(DEBUG6){
-      char* s = stringcopy("I want, to, bang Andrea.");
-      char** a = stringsplit(s, " ,");
-      char* print = printstringarray(a);
+      String s = stringcopy("I want, to, bang Andrea.");
+      Strings a = stringsplit(s, " ,");
+      remove_from_stringarray(a, "want");
+      String print = printstringarray(a);
       printf("print is\n\n%s", print);
-      destroystring(s);
       destroystring(print);
       destroystringarray(a);
+      if(a == NULL && print == NULL){
+        printf("Destroyers succeeded\n");
+      }
+      char test = getch(s, 100);
+      printf("test is %c\n", test);
+      destroystring(s);
+
       
     }
+    if(DEBUG7){
+      String test = stringcopy("There is a demon");
+      int* indecies = indecies_of_char(test, 'z');
+      int i = 0;
+      while(indecies[i] != -1){
+        printf("%d\n", indecies[i]);
+        i++;
+      }
+      free(indecies);
+      destroystring(test);
+      String test2 = stringcopy("the cat and the bat and the hat");
+      Strings a = stringsplit(test2, " ");
+      indecies = indecies_of_string(a, "the");
+      i = 0;
+      while(indecies[i] != -1){
+        printf("array %d\n", indecies[i]);
+        i++;
+      }
+      free(indecies);
+      destroystringarray(a);
+      destroystring(test2);
+    
+    }
+    
+
      return 0;
 }
