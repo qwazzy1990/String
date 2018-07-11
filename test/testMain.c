@@ -3,26 +3,33 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include "..//..//utilities/include/utilities.h"
+#include "utilities.h"
 
-#include <String.h>
+#include "DynamicString.h"
 
-
+bool DEBUG0 = false;
 bool DEBUG1 = false;
 bool DEBUG2  = false;
 bool DEBUG3 = false;
 bool DEBUG4 = false;
-bool DEBUG5 = false;
+bool DEBUG5 = true;
 bool DEBUG6 = false;
-bool DEBUG7 = true;
+bool DEBUG7 = false;
 bool DEBUG8 = false;
+bool DEBUG9 = false;
 
 int main(int argc, String argv[])
 {
 
-    if(DEBUG7){
+    if(DEBUG0){
     	String a = NULL;
+      a = createvoidstring();
+      forall(10){
+        a[x] = 'x';
+      }
+      printf("%s\n", a);
 	    destroystring(a);
+      if(a == NULL)printf("Success\n");
     }	
     if(DEBUG1){
       FILE* fp = fopen(argv[1], "r");
@@ -51,8 +58,9 @@ int main(int argc, String argv[])
     if(DEBUG2){
         String s = createvoidstring();
         Strings s1 = createvoidstringarray();
-        if(s1 != NULL && s != NULL)
+        if(s1 != NULL && s != NULL){
           printf("Success\n");
+        }
         destroystring(s);
         destroystringarray(s1);
     }
@@ -107,7 +115,7 @@ int main(int argc, String argv[])
       dest = stringcat(dest, source);
       printf("Dest is %s\n", dest);
       destroystring(source);
-      destroystring(dest);
+      //destroystring(dest);
       source = stringcopy("fat");
       printf("Source is %s\n", source);
       dest = stringcat(dest, source);
@@ -126,7 +134,8 @@ int main(int argc, String argv[])
       String str = tostring(type, &k);
       printf("%s\n", str);
       destroystring(str);
-      //destroystring(source);
+      destroystring(source);
+      destroystring(dest);
 
     }
     //test print function
@@ -171,6 +180,31 @@ int main(int argc, String argv[])
     
     }
     
+    if(DEBUG8){
+
+      String a = stringcopy("bat");
+      String b = stringcopy("Bat");
+      printf("%d\n", strequal(a, b, CASE_INSENSITIVE));
+      printf("%d\n", strequal(a, b, CASE_SENSITIVE));
+      destroystring(a);
+      destroystring(b);
+      String c = to_upper("bAt");
+      printf("%s\n", c);
+      destroystring(c);
+    }
+
+    //Concatenation and String conversion debug
+    if(DEBUG9)
+    {
+      String a = stringcopy("Hello");
+      //Preprocessor directives ignores space
+      //a = stringcat(a, 3, $( World), $( Jesus), $( Christ));
+      P("%s\n", a); 
+      if(a == NULL)printf("A is NULL\n");
+      clear(a);
+      P("%s\n", $(j));
+
+    }
 
      return 0;
 }

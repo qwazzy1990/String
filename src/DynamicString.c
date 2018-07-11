@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <assert.h>
 
-#include "../include/String.h"
+#include "DynamicString.h"
 
 
 
@@ -130,9 +130,37 @@ bool isdelim(char c, String delims)
 
 
 
+                    /*****MEMORY ALLOCATING FUNCTIONS*****/
+String string_alloc(int size)
+{
+    assert(size > 0);
+    String newString = (String)calloc((size+5), sizeof(char));
+    return newString; 
+}
 
+void resize_string_real(String* s, int* size)
+{
+    assert(s != NULL);
+    assert(*s != NULL);
+    assert(*size > 0);
+    *size += stringlen(*s)+1;
+    *s = (String)realloc(*s, *size);
+}
 
+Strings strings_alloc(int size)
+{
+    assert(size > 0);
+    Strings s = (Strings)calloc((size+5), sizeof(char*));
+    return s;
+}
 
+Strings resize_strings(Strings s, int size)
+{
+    assert(s != NULL);
+    assert(size > 0);
+    s = (Strings)realloc(s, sizeof(char*)*(size+5));
+    return s;
+}
 
 
                       /********CONSTRUCTORS*************/
@@ -142,7 +170,7 @@ bool isdelim(char c, String delims)
 **/
 String createvoidstring(void)
 {
-     String s = (String)calloc(50000, sizeof(char));
+     String s = (String)malloc(50000*sizeof(char));
      if(s == NULL)return NULL;
      for(int i = 0; i < DEFAULT_SIZE; i++)
       s[i] = '\0';
@@ -173,10 +201,10 @@ String createstring(String s)
 String createnstring(unsigned int size)
 {
     assert(size > 0);
-    String s = (String)calloc(size, sizeof(char));
+    new_object(String, s, size);
     if(s == NULL)return NULL;
-    for(int i = 0; i < size; i++)
-        s[i] = '\0';
+    forall(size)
+        s[x] = '\0';
     return s;
 }
 
@@ -197,10 +225,11 @@ String createnstring(unsigned int size)
 Strings createvoidstringarray(void)
 {
     int i = 0;
-    Strings s = (Strings)calloc(DEFAULT_SIZE+1, sizeof(String));
+    Strings s = malloc(1001*sizeof(*s));
     if(s==NULL)return NULL;
-    for(i = 0; i < DEFAULT_SIZE; i++){
-      s[i] = createvoidstring();
+    for(i = 0; i < 1000; i++){
+       new_object(String, t, 1000);
+       s[i] = t;
     }
     s[i]=NULL;
     return s;
@@ -214,10 +243,11 @@ Strings createvoidstringarray(void)
 void destroystring_real(Strings s)
 {
     assert(s != NULL);
-    if((*s) == NULL)return;
+    if((*s) == NULL){
+        return;
+    }
     String temp = (String)(*s);
-    if(stringlen(temp)<=0)return;
-    free(*s);
+    free(temp);
     *s = NULL;
 }
 
@@ -394,33 +424,32 @@ Strings stringarraysegmentcopy(Strings s, unsigned int start, unsigned int end)
 
                       /********MUTATORS*********************/
 
+
+
+/**********FIX ME:********/
 String stringcat(String dest, String source)
 {
-    assert(badstring(source)==false);
-    if(badstring(dest)){
-	      dest = stringcopy(source);
-	       assert(badstring(dest)==false);
-	       return dest;
+    if(source == NULL)return NULL;
+    if(dest == NULL){
+        dest = stringcopy(source);
+        return dest;
     }
-    String clone = (String)calloc(stringlen(dest), sizeof(*clone));
-    int j = 0;
-    while(dest[j] != '\0'){
-        if(dest[j]=='\0')break;
-      clone[j] = dest[j];
-      j++;
+    if(stringlen(dest) <= 0){
+        clear(dest);
+        dest = stringcopy(source);
+        return dest;
     }
-    destroystring(dest);
-    int count = 0;
-    int reallocSize= j + stringlen(source) +2;
-    count = j;
-    clone = (String)realloc(clone, reallocSize*sizeof(char));
-   
-    for(int i = 0; i < strlen(source); i++){
-        clone[count] = source[i];
+
+    int memSize = stringlen(dest) + stringlen(source) + 1;
+    dest = realloc(dest, memSize*sizeof(char));
+    int count = stringlen(dest);
+    forall(stringlen(source)){
+        dest[count] = source[x];
         count++;
     }
-   clone[count] = '\0';
-    return clone;
+    dest[count] = '\0';
+    return dest;
+
 }
 
 
@@ -438,8 +467,43 @@ String reversestring(String s)
        n--;
      }
      inverse[i] = '\0';
-     destroystring(s);
      return inverse;
+}
+
+String to_lower(String s)
+{
+    assert(s != NULL);
+    String temp = stringcopy(s);
+    forall(stringlen(temp)){
+        if(temp[x] >= 65 && temp[x] <= 90){
+            char c = temp[x];
+            int t = (int)c;
+            t = t+32;
+            c = (char)t;
+            temp[x] = c;
+        }
+    }
+    String lowerCase = stringcopy(temp);
+    destroystring(temp);
+    return lowerCase;
+}
+
+String to_upper(String s)
+{
+    assert(s != NULL);
+    String temp = stringcopy(s);
+    forall(stringlen(temp)){
+        if(temp[x] >= 97 && temp[x] <= 122){
+            char c = temp[x];
+            int t = (int)c;
+            t = t-32;
+            c = (char)t;
+            temp[x] = c;
+        }
+    }
+    String upperCase = stringcopy(temp);
+    destroystring(temp);
+    return upperCase;
 }
 
 int add_to_stringarray(Strings a, String s)
@@ -449,6 +513,7 @@ int add_to_stringarray(Strings a, String s)
         i++;
     }
     a[i] = stringcopy(s);
+    a[i+1] = NULL;
     return i;
 }
 
@@ -585,6 +650,7 @@ String tostring(Primitive type, void* data)
         }//endwhile
         s = stringcat(s, "-");
         s2 = reversestring(s);
+        destroystring(s);
 
       }//endif
       n = *fp;
@@ -658,6 +724,38 @@ bool badstring(String s)
      return false;
 }
 
+bool is_upper_real(char c)
+{
+    int x = (int)c;
+    if(x >= 65 && x <=90){
+        return true;
+    }return false;
+}
+
+bool strequal(String s1, String s2, CaseSensitivity c)
+{
+    if(s1 == NULL)return false;
+    if(s2 == NULL)return false;
+    if(stringlen(s1) != stringlen(s2))return false;
+    if(c == CASE_SENSITIVE){
+        if(strcmp(s1, s2)!=0)return false;
+        else return true;
+    }
+    else{
+        String upper1 = to_upper(s1);
+        String upper2 = to_upper(s2);
+        if(strcmp(upper1, upper2) != 0){
+            destroystring(upper1);
+            destroystring(upper2);
+            return false;
+        }else{
+            destroystring(upper1);
+            destroystring(upper2);
+            return true;
+        }
+    }
+}
+
 
                           /*****************Accessors*****************/
 int stringlen(String s)
@@ -726,3 +824,6 @@ int* indecies_of_string(Strings a, String s)
     return indecies;
 
 }
+
+
+/****FIX ME: CREATE A FUNCTION TO GET THE STATUS OF A STRING****/
